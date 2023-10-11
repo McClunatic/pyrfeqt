@@ -30,21 +30,23 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.addToolBar(bottom, NavigationToolbar(dynamic_canvas, self))
 
         self._static_ax = static_canvas.figure.subplots()
-        t = np.linspace(0, 10, 501)
+        t = np.linspace(0., 10., 501)
         self._static_ax.plot(t, np.tan(t), ".")
 
         self._dynamic_ax = dynamic_canvas.figure.subplots()
-        t = np.linspace(0, 10, 101)
+        t = np.linspace(0., 10., 1024)
         # Set up a Line2D.
-        self._line, = self._dynamic_ax.plot(t, np.sin(t + time.time()))
+        y = np.sin(t + np.pi * time.time() / 30.)
+        self._line, = self._dynamic_ax.plot(t, y)
         self._timer = dynamic_canvas.new_timer(50)
         self._timer.add_callback(self._update_canvas)
         self._timer.start()
 
     def _update_canvas(self):
-        t = np.linspace(0, 10, 101)
+        t = np.linspace(0, 10, 1024)
+        y = np.sin(t + np.pi * time.time() / 30.)
         # Shift the sinusoid as a function of time.
-        self._line.set_data(t, np.sin(t + time.time()))
+        self._line.set_data(t, y)
         self._line.figure.canvas.draw()
 
 
