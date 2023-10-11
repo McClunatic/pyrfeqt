@@ -6,8 +6,8 @@ import numpy as np
 from matplotlib.backends.backend_qtagg import FigureCanvas
 from matplotlib.backends.backend_qtagg import \
     NavigationToolbar2QT as NavigationToolbar
-from matplotlib.backends.qt_compat import QtWidgets
 from matplotlib.figure import Figure
+from PySide6 import QtCore, QtWidgets
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -21,12 +21,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Ideally one would use self.addToolBar here, but it is slightly
         # incompatible between PyQt6 and other bindings, so we just add the
         # toolbar as a plain widget instead.
-        layout.addWidget(NavigationToolbar(static_canvas, self))
+        self.addToolBar(NavigationToolbar(static_canvas, self))
         layout.addWidget(static_canvas)
 
         dynamic_canvas = FigureCanvas(Figure(figsize=(5, 3)))
         layout.addWidget(dynamic_canvas)
-        layout.addWidget(NavigationToolbar(dynamic_canvas, self))
+        bottom = QtCore.Qt.ToolBarArea.BottomToolBarArea
+        self.addToolBar(bottom, NavigationToolbar(dynamic_canvas, self))
 
         self._static_ax = static_canvas.figure.subplots()
         t = np.linspace(0, 10, 501)
