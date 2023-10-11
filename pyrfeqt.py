@@ -1,3 +1,4 @@
+import pathlib
 import sys
 import time
 
@@ -38,16 +39,28 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Set up a Line2D.
         y = np.sin(t + np.pi * time.time() / 30.)
         self._line, = self._dynamic_ax.plot(t, y)
-        self._timer = dynamic_canvas.new_timer(50)
-        self._timer.add_callback(self._update_canvas)
-        self._timer.start()
 
-    def _update_canvas(self):
-        t = np.linspace(0, 10, 1024)
-        y = np.sin(t + np.pi * time.time() / 30.)
-        # Shift the sinusoid as a function of time.
-        self._line.set_data(t, y)
-        self._line.figure.canvas.draw()
+        # Set up a file watcher to update plot
+        self._watcher = QtCore.QFileSystemWatcher(
+            [str(pathlib.Path(__file__).parent / 'samples')],
+            self)
+        self._watcher.directoryChanged.connect(self._update_canvas)
+
+    def _update_canvas(self, watched_dir):
+        t = np.linspace(0., 10., 1024)
+        path = pathlib.Path(watched_dir)
+        npy_files = sorted(
+            [npy for npy in path.iterdir()],
+            key=lambda f: f.stat().st_mtime)
+        latest_npy = npy_files[-1]
+        # Account for partially written files
+        try:
+            with open(latest_npy, 'rb') as npy_file:
+                y = np.load(npy_file)
+            self._line.set_data(t, y)
+            self._line.figure.canvas.draw()
+        except EOFError:
+            pass
 
 
 if __name__ == "__main__":
